@@ -4,6 +4,10 @@
 #include <QMainWindow>
 
 QT_BEGIN_NAMESPACE
+
+// 让头文件认识 QTreeWidgetItem
+class QTreeWidgetItem;
+
 namespace Ui {
 class MainWindow;
 }
@@ -16,6 +20,11 @@ class MainWindow : public QMainWindow
 public:
     explicit MainWindow(QWidget *parent = nullptr);
     ~MainWindow() override;
+
+private slots:
+    void updatePreview();
+    void openSampleNote(QTreeWidgetItem *item, int column);
+    void openMarkdownFile();
 
 private:
     Ui::MainWindow *ui;
