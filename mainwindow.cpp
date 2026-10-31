@@ -4,6 +4,7 @@
 #include <QFile>    // 打开和读取文件
 #include <QFileDialog>  // 让用户在弹出的窗口里选择文件
 #include <QMessageBox>   // 读取失败时显示提示
+#include <QSaveFile>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -29,6 +30,9 @@ MainWindow::MainWindow(QWidget *parent)
     // 用户点击“打开文件”菜单项时，让程序调用 openMarkdownFile()
     connect(ui->actionOpen, &QAction::triggered,    // 触发
             this, &MainWindow::openMarkdownFile);
+
+    connect(ui->actionSave, &QAction::triggered,
+            this, &MainWindow::saveMarkdownFile);
 }
 
 MainWindow::~MainWindow()
@@ -61,7 +65,7 @@ void MainWindow::openMarkdownFile()
         this,   // 表示这个选择窗口属于当前主窗口
         "打开 Markdown 文件",   // 文件选择窗口的标题
         QString(),  // 表示初始打开目录为空，系统会使用默认位置。以后也可以写成某个目录路径。
-        "Markdown 文件 (*.md);;所有文件 (*)"
+        "Markdown 文件 (*.md);;所有文件 (*)"  // 文件类型过滤器
         );
 
     // 用户点了取消，直接返回
@@ -80,4 +84,45 @@ void MainWindow::openMarkdownFile()
     // 文件按 UTF-8 解码，再放进编辑器
     QString content = QString::fromUtf8(file.readAll());
     ui->editor->setPlainText(content);
+}
+
+void MainWindow::saveMarkdownFile()
+{
+    QString filePath = QFileDialog::getSaveFileName(
+        this,
+        "保存 Markdown 文件",
+        QString(),
+        "Markdown 文件 (*.md)"
+        );
+
+    // 用户取消保存
+    if (filePath.isEmpty()) {
+        return;
+    }
+
+    // 用户没有写扩展名时，补上 .md
+    if (!filePath.endsWith(".md", Qt::CaseInsensitive)) {
+        filePath += ".md";
+    }
+
+    QSaveFile file(filePath);
+
+    if (!file.open(QIODevice::WriteOnly)) {
+        QMessageBox::warning(this, "保存失败", file.errorString());
+        return;
+    }
+
+    QByteArray content = ui->editor->toPlainText().toUtf8();
+
+    if (file.write(content) != content.size()) {
+        QMessageBox::warning(this, "保存失败", file.errorString());
+        return;
+    }
+
+    if (!file.commit()) {
+        QMessageBox::warning(this, "保存失败", file.errorString());
+        return;
+    }
+
+    QMessageBox::information(this, "保存成功", "笔记已保存。");
 }

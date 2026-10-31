@@ -25,6 +25,7 @@ private slots:
     void updatePreview();
     void openSampleNote(QTreeWidgetItem *item, int column);
     void openMarkdownFile();
+    void saveMarkdownFile();
 
 private:
     Ui::MainWindow *ui;
