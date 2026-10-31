@@ -29,5 +29,6 @@ private slots:
 
 private:
     Ui::MainWindow *ui;
+    QString currentFilePath;    // 默认是空字符串，表示目前没有关联的文件
 };
 #endif // MAINWINDOW_H

@@ -5,6 +5,7 @@
 #include <QFileDialog>  // 让用户在弹出的窗口里选择文件
 #include <QMessageBox>   // 读取失败时显示提示
 #include <QSaveFile>
+#include <QString>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -33,6 +34,7 @@ MainWindow::MainWindow(QWidget *parent)
 
     connect(ui->actionSave, &QAction::triggered,
             this, &MainWindow::saveMarkdownFile);
+
 }
 
 MainWindow::~MainWindow()
@@ -49,6 +51,7 @@ void MainWindow::updatePreview()
 void MainWindow::openSampleNote(QTreeWidgetItem *item, int column)
 {
     Q_UNUSED(column); // 目前不需要用到列号
+    currentFilePath.clear();
 
     if (item->text(0) == "学习 C++") {    // 读取被点击条目第 0 列的文字
         ui->editor->setPlainText("# 学习 C++\n\n- 复习类和对象");   // 示例内容放进编辑器
@@ -84,16 +87,21 @@ void MainWindow::openMarkdownFile()
     // 文件按 UTF-8 解码，再放进编辑器
     QString content = QString::fromUtf8(file.readAll());
     ui->editor->setPlainText(content);
+    currentFilePath = filePath; //成功打开并读取文件之后，才会更新当前路径。用户取消或打开失败时，原来的路径保持不变。
 }
 
 void MainWindow::saveMarkdownFile()
 {
-    QString filePath = QFileDialog::getSaveFileName(
-        this,
-        "保存 Markdown 文件",
-        QString(),
-        "Markdown 文件 (*.md)"
-        );
+    QString filePath = currentFilePath;
+
+    if(filePath.isEmpty()) {
+        filePath = QFileDialog::getSaveFileName(
+            this,
+            "保存 Markdown 文件",
+            QString(),
+            "Markdown 文件 (*.md)"
+            );
+    }
 
     // 用户取消保存
     if (filePath.isEmpty()) {
