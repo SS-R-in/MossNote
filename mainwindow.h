@@ -28,6 +28,7 @@ private slots:
     void openMarkdownFile();
     void saveMarkdownFile();    // 检查当前内容是否修改过，并询问用户是否保存
     void chooseVault();
+    void refreshVault();
 
 protected:
     void closeEvent(QCloseEvent *event) override;

@@ -42,6 +42,9 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->actionChooseVault, &QAction::triggered,
             this, &MainWindow::chooseVault);
 
+    connect(ui->actionRefreshVault, &QAction::triggered,
+            this, &MainWindow::refreshVault);
+
 }
 
 MainWindow::~MainWindow()
@@ -231,6 +234,30 @@ void MainWindow::chooseVault()
     // 每个条目显示不带扩展名的文件名，同时把完整路径存到条目的 Qt::UserRole 数据里，点击时就能知道具体要打开哪个文件。
     for (const QString &fileName : files) {
         QString fullPath = dir.filePath(fileName);
+        auto *item = new QTreeWidgetItem(ui->noteTree);
+        item->setText(0, QFileInfo(fileName).completeBaseName());
+        item->setData(0, Qt::UserRole, fullPath);
+    }
+}
+
+void MainWindow::refreshVault()
+{
+    if (vaultPath.isEmpty()) {
+        QMessageBox::information(this, "提示", "请先选择笔记库文件夹。");
+        return;
+    }
+
+    ui->noteTree->clear();
+
+    QDir dir(vaultPath);
+    const QStringList files = dir.entryList(
+        QStringList{"*.md", "*.MD"},
+        QDir::Files,
+        QDir::Name
+        );
+
+    for (const QString &fileName : files) {
+        const QString fullPath = dir.filePath(fileName);
         auto *item = new QTreeWidgetItem(ui->noteTree);
         item->setText(0, QFileInfo(fileName).completeBaseName());
         item->setData(0, Qt::UserRole, fullPath);
