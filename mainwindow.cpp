@@ -7,6 +7,9 @@
 #include <QSaveFile>
 #include <QString>
 #include <QCloseEvent>
+#include <QDir>
+#include <QFileInfo>
+#include <QTreeWidgetItem>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -36,6 +39,9 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->actionSave, &QAction::triggered,
             this, &MainWindow::saveMarkdownFile);
 
+    connect(ui->actionChooseVault, &QAction::triggered,
+            this, &MainWindow::chooseVault);
+
 }
 
 MainWindow::~MainWindow()
@@ -51,19 +57,29 @@ void MainWindow::updatePreview()
 
 void MainWindow::openSampleNote(QTreeWidgetItem *item, int column)
 {
-    Q_UNUSED(column); // 目前不需要用到列号
+    Q_UNUSED(column);
 
     if (!maybeSave()) {
         return;
     }
 
-    currentFilePath.clear();
+    QString filePath = item->data(0, Qt::UserRole).toString();
 
-    if (item->text(0) == "学习 C++") {    // 读取被点击条目第 0 列的文字
-        ui->editor->setPlainText("# 学习 C++\n\n- 复习类和对象");   // 示例内容放进编辑器
-    } else if (item->text(0) == "学习 Qt") {
-        ui->editor->setPlainText("# 学习 Qt\n\n- 理解信号与槽");
+    // 没有真实文件路径时，说明这是旧的示例条目
+    if (filePath.isEmpty()) {
+        return;
     }
+
+    QFile file(filePath);
+    if (!file.open(QIODevice::ReadOnly)) {
+        QMessageBox::warning(this, "打开失败", file.errorString());
+        return;
+    }
+
+    QString content = QString::fromUtf8(file.readAll());
+    ui->editor->setPlainText(content);
+    currentFilePath = filePath;
+    ui->editor->document()->setModified(false);
 }
 
 // 让用户选择一个 Markdown 文件，读取内容，再显示到编辑器
@@ -184,5 +200,39 @@ void MainWindow::closeEvent(QCloseEvent *event)
         event->accept();  // 允许关闭窗口
     } else {
         event->ignore();  // 取消关闭，留在当前窗口
+    }
+}
+
+void MainWindow::chooseVault()
+{
+    if (!maybeSave()) {
+        return;
+    }
+
+    QString folder = QFileDialog::getExistingDirectory( // 让用户选择文件夹
+        this,
+        "选择笔记库文件夹"
+        );
+
+    if (folder.isEmpty()) {
+        return;
+    }
+
+    vaultPath = folder;
+    currentFilePath.clear();
+    ui->noteTree->clear();
+
+    QDir dir(vaultPath);    // 扫描其中的 .md 文件
+    const QStringList files = dir.entryList(
+        QStringList{"*.md", "*.MD"},
+        QDir::Files,
+        QDir::Name
+        );
+    // 每个条目显示不带扩展名的文件名，同时把完整路径存到条目的 Qt::UserRole 数据里，点击时就能知道具体要打开哪个文件。
+    for (const QString &fileName : files) {
+        QString fullPath = dir.filePath(fileName);
+        auto *item = new QTreeWidgetItem(ui->noteTree);
+        item->setText(0, QFileInfo(fileName).completeBaseName());
+        item->setData(0, Qt::UserRole, fullPath);
     }
 }

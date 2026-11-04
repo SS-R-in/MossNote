@@ -56,6 +56,7 @@ li.checked::marker { content: &quot;\2612&quot;; }
     </property>
     <addaction name="actionOpen"/>
     <addaction name="actionSave"/>
+    <addaction name="actionChooseVault"/>
    </widget>
    <addaction name="menu"/>
   </widget>
@@ -72,6 +73,11 @@ li.checked::marker { content: &quot;\2612&quot;; }
   <action name="actionSave">
    <property name="text">
     <string>保存文件</string>
+   </property>
+  </action>
+  <action name="actionChooseVault">
+   <property name="text">
+    <string>选择笔记库</string>
    </property>
   </action>
  </widget>
