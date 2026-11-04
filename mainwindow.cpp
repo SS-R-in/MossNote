@@ -6,6 +6,7 @@
 #include <QMessageBox>   // 读取失败时显示提示
 #include <QSaveFile>
 #include <QString>
+#include <QCloseEvent>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -51,6 +52,11 @@ void MainWindow::updatePreview()
 void MainWindow::openSampleNote(QTreeWidgetItem *item, int column)
 {
     Q_UNUSED(column); // 目前不需要用到列号
+
+    if (!maybeSave()) {
+        return;
+    }
+
     currentFilePath.clear();
 
     if (item->text(0) == "学习 C++") {    // 读取被点击条目第 0 列的文字
@@ -63,6 +69,10 @@ void MainWindow::openSampleNote(QTreeWidgetItem *item, int column)
 // 让用户选择一个 Markdown 文件，读取内容，再显示到编辑器
 void MainWindow::openMarkdownFile()
 {
+    if (!maybeSave()) {
+        return;
+    }
+
     // 让用户选择一个 Markdown 文件
     QString filePath = QFileDialog::getOpenFileName(    // 弹出系统文件选择窗口，并把用户选择的路径保存到 filePath
         this,   // 表示这个选择窗口属于当前主窗口
@@ -88,6 +98,7 @@ void MainWindow::openMarkdownFile()
     QString content = QString::fromUtf8(file.readAll());
     ui->editor->setPlainText(content);
     currentFilePath = filePath; //成功打开并读取文件之后，才会更新当前路径。用户取消或打开失败时，原来的路径保持不变。
+    ui->editor->document()->setModified(false);
 }
 
 void MainWindow::saveMarkdownFile()
@@ -131,6 +142,47 @@ void MainWindow::saveMarkdownFile()
         QMessageBox::warning(this, "保存失败", file.errorString());
         return;
     }
-
+    // 保存成功后，记住这次保存的路径
+    currentFilePath = filePath;
+    ui->editor->document()->setModified(false);
     QMessageBox::information(this, "保存成功", "笔记已保存。");
+}
+
+bool MainWindow::maybeSave()
+{
+    if (!ui->editor->document()->isModified()) {
+        return true;
+    }
+
+    QMessageBox::StandardButton answer =
+        QMessageBox::warning(
+            this,
+            "未保存的修改",
+            "当前笔记有未保存的修改，要保存吗？",
+            QMessageBox::Save |
+                QMessageBox::Discard |
+                QMessageBox::Cancel
+            );
+
+    if (answer == QMessageBox::Save) {
+        saveMarkdownFile();
+
+        // 如果用户在保存窗口中取消，仍然是修改状态
+        return !ui->editor->document()->isModified();
+    }
+
+    if (answer == QMessageBox::Discard) {
+        return true;
+    }
+
+    return false;
+}
+
+void MainWindow::closeEvent(QCloseEvent *event)
+{
+    if (maybeSave()) {
+        event->accept();  // 允许关闭窗口
+    } else {
+        event->ignore();  // 取消关闭，留在当前窗口
+    }
 }

@@ -7,6 +7,7 @@ QT_BEGIN_NAMESPACE
 
 // 让头文件认识 QTreeWidgetItem
 class QTreeWidgetItem;
+class QCloseEvent;
 
 namespace Ui {
 class MainWindow;
@@ -25,10 +26,14 @@ private slots:
     void updatePreview();
     void openSampleNote(QTreeWidgetItem *item, int column);
     void openMarkdownFile();
-    void saveMarkdownFile();
+    void saveMarkdownFile();    // 检查当前内容是否修改过，并询问用户是否保存
+
+protected:
+    void closeEvent(QCloseEvent *event) override;
 
 private:
     Ui::MainWindow *ui;
     QString currentFilePath;    // 默认是空字符串，表示目前没有关联的文件
+    bool maybeSave();
 };
 #endif // MAINWINDOW_H
