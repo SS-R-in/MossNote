@@ -29,6 +29,7 @@ private slots:
     void saveMarkdownFile();    // 检查当前内容是否修改过，并询问用户是否保存
     void chooseVault();
     void refreshVault();
+    void newNote();
 
 protected:
     void closeEvent(QCloseEvent *event) override;
@@ -38,5 +39,7 @@ private:
     QString currentFilePath;    // 默认是空字符串，表示目前没有关联的文件
     bool maybeSave();
     QString vaultPath;  // 记住用户选中的笔记文件夹路径
+    void addNotesFromDirectory(const QString &dirPath,
+                               QTreeWidgetItem *parentItem);
 };
 #endif // MAINWINDOW_H

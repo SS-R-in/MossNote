@@ -10,6 +10,8 @@
 #include <QDir>
 #include <QFileInfo>
 #include <QTreeWidgetItem>
+#include <QInputDialog> // 获取标题
+#include <QLineEdit>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -45,6 +47,9 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->actionRefreshVault, &QAction::triggered,
             this, &MainWindow::refreshVault);
 
+    connect(ui->actionNewNote, &QAction::triggered,
+            this, &MainWindow::newNote);
+
 }
 
 MainWindow::~MainWindow()
@@ -62,14 +67,14 @@ void MainWindow::openSampleNote(QTreeWidgetItem *item, int column)
 {
     Q_UNUSED(column);
 
-    if (!maybeSave()) {
+    QString filePath = item->data(0, Qt::UserRole).toString();
+
+    // 文件夹没有存文件路径，点击它时不打开笔记
+    if (filePath.isEmpty()) {
         return;
     }
 
-    QString filePath = item->data(0, Qt::UserRole).toString();
-
-    // 没有真实文件路径时，说明这是旧的示例条目
-    if (filePath.isEmpty()) {
+    if (!maybeSave()) {
         return;
     }
 
@@ -222,22 +227,7 @@ void MainWindow::chooseVault()
     }
 
     vaultPath = folder;
-    currentFilePath.clear();
-    ui->noteTree->clear();
-
-    QDir dir(vaultPath);    // 扫描其中的 .md 文件
-    const QStringList files = dir.entryList(
-        QStringList{"*.md", "*.MD"},
-        QDir::Files,
-        QDir::Name
-        );
-    // 每个条目显示不带扩展名的文件名，同时把完整路径存到条目的 Qt::UserRole 数据里，点击时就能知道具体要打开哪个文件。
-    for (const QString &fileName : files) {
-        QString fullPath = dir.filePath(fileName);
-        auto *item = new QTreeWidgetItem(ui->noteTree);
-        item->setText(0, QFileInfo(fileName).completeBaseName());
-        item->setData(0, Qt::UserRole, fullPath);
-    }
+    refreshVault();
 }
 
 void MainWindow::refreshVault()
@@ -248,18 +238,106 @@ void MainWindow::refreshVault()
     }
 
     ui->noteTree->clear();
+    addNotesFromDirectory(vaultPath, nullptr);
+}
 
-    QDir dir(vaultPath);
-    const QStringList files = dir.entryList(
-        QStringList{"*.md", "*.MD"},
-        QDir::Files,
-        QDir::Name
+void MainWindow::newNote()
+{
+    if (vaultPath.isEmpty()) {
+        QMessageBox::information(this, "提示", "请先选择笔记库文件夹。");
+        return;
+    }
+
+    if (!maybeSave()) {
+        return;
+    }
+
+    bool ok = false;
+    QString title = QInputDialog::getText(
+                        this,
+                        "新建笔记",
+                        "笔记名称：",
+                        QLineEdit::Normal,
+                        QString(),
+                        &ok
+                        ).trimmed();
+
+    if (!ok || title.isEmpty()) {
+        return;
+    }
+
+    // 避免把路径分隔符当成标题的一部分
+    if (title.contains('/') || title.contains('\\')) {
+        QMessageBox::warning(this, "名称无效", "笔记名称不能包含 / 或 \\。");
+        return;
+    }
+
+    QString filePath = QDir(vaultPath).filePath(title + ".md");
+
+    if (QFileInfo::exists(filePath)) {  // 检查文件名是否冲突
+        QMessageBox::warning(this, "文件已存在", "笔记库里已经有这个文件名。");
+        return;
+    }
+
+    QSaveFile file(filePath);   // 创建空 Markdown 文件
+    if (!file.open(QIODevice::WriteOnly) || !file.commit()) {
+        QMessageBox::warning(this, "创建失败", file.errorString());
+        return;
+    }
+
+    // 创建后刷新左侧列表，并把新文件设为当前笔记。
+
+    refreshVault();
+
+    currentFilePath = filePath;
+    ui->editor->clear();
+    ui->editor->document()->setModified(false);
+    ui->editor->setFocus();
+}
+
+void MainWindow::addNotesFromDirectory(const QString &dirPath,
+                                       QTreeWidgetItem *parentItem)
+{
+    QDir dir(dirPath);
+
+    // 先列出当前目录下的子文件夹
+    const QFileInfoList folders = dir.entryInfoList(
+        QDir::Dirs | QDir::NoDotAndDotDot | QDir::NoSymLinks,
+        QDir::Name | QDir::IgnoreCase
         );
 
-    for (const QString &fileName : files) {
-        const QString fullPath = dir.filePath(fileName);
-        auto *item = new QTreeWidgetItem(ui->noteTree);
-        item->setText(0, QFileInfo(fileName).completeBaseName());
-        item->setData(0, Qt::UserRole, fullPath);
+    for (const QFileInfo &folder : folders) {
+        QTreeWidgetItem *folderItem;
+
+        if (parentItem) {
+            folderItem = new QTreeWidgetItem(parentItem);
+        } else {
+            folderItem = new QTreeWidgetItem(ui->noteTree);
+        }
+
+        folderItem->setText(0, folder.fileName());
+
+        // 继续扫描这个子文件夹
+        addNotesFromDirectory(folder.absoluteFilePath(), folderItem);
+    }
+
+    // 再列出当前目录下的 Markdown 文件
+    const QFileInfoList files = dir.entryInfoList(
+        QStringList{"*.md", "*.MD"},
+        QDir::Files | QDir::NoSymLinks,
+        QDir::Name | QDir::IgnoreCase
+        );
+
+    for (const QFileInfo &file : files) {
+        QTreeWidgetItem *fileItem;
+
+        if (parentItem) {
+            fileItem = new QTreeWidgetItem(parentItem);
+        } else {
+            fileItem = new QTreeWidgetItem(ui->noteTree);
+        }
+
+        fileItem->setText(0, file.completeBaseName());
+        fileItem->setData(0, Qt::UserRole, file.absoluteFilePath());
     }
 }
