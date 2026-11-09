@@ -59,6 +59,7 @@ li.checked::marker { content: &quot;\2612&quot;; }
     <addaction name="actionChooseVault"/>
     <addaction name="actionRefreshVault"/>
     <addaction name="actionNewNote"/>
+    <addaction name="actionRenameNote"/>
    </widget>
    <addaction name="menu"/>
   </widget>
@@ -90,6 +91,11 @@ li.checked::marker { content: &quot;\2612&quot;; }
   <action name="actionNewNote">
    <property name="text">
     <string>新建笔记</string>
+   </property>
+  </action>
+  <action name="actionRenameNote">
+   <property name="text">
+    <string>重命名笔记</string>
    </property>
   </action>
  </widget>

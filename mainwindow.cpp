@@ -12,6 +12,7 @@
 #include <QTreeWidgetItem>
 #include <QInputDialog> // 获取标题
 #include <QLineEdit>
+#include <QRegularExpression>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -49,6 +50,8 @@ MainWindow::MainWindow(QWidget *parent)
 
     connect(ui->actionNewNote, &QAction::triggered,
             this, &MainWindow::newNote);
+
+    connect(ui->actionRenameNote, &QAction::triggered, this, &MainWindow::renameNote);
 
 }
 
@@ -293,6 +296,66 @@ void MainWindow::newNote()
     ui->editor->clear();
     ui->editor->document()->setModified(false);
     ui->editor->setFocus();
+}
+
+void MainWindow::renameNote(){
+    QTreeWidgetItem* item = ui->noteTree->currentItem();
+
+    if(!item){
+        QMessageBox::information(this, "提示", "请先在左侧选择一篇笔记。");
+        return;
+    }
+
+    QString oldPath =item->data(0, Qt::UserRole).toString();
+
+    // 文件夹没有存放笔记路径
+    if (oldPath.isEmpty()) {
+        QMessageBox::information(this, "提示", "请选择笔记文件。");
+        return;
+    }
+
+    const QFileInfo oldInfo(oldPath);
+    const QString oldTitle = oldInfo.completeBaseName();
+
+
+    bool ok = false;
+    QString newTitle = QInputDialog::getText(
+                        this,
+                        "重命名笔记",
+                        "笔记名称：",
+                        QLineEdit::Normal,
+                        QString(),
+                        &ok
+                        ).trimmed();
+
+    if (!ok || newTitle.isEmpty() || oldTitle == newTitle) {
+        return;
+    }
+
+    // 避免把路径分隔符当成标题的一部分
+    if (newTitle.contains('/') || newTitle.contains('\\')) {
+        QMessageBox::warning(this, "名称无效", "笔记名称不能包含 / 或 \\。");
+        return;
+    }
+
+    QString newPath = oldInfo.dir().filePath(newTitle + ".md");
+
+    if (QFileInfo::exists(newPath)) {
+        QMessageBox::warning(this, "文件已存在", "笔记库里已经有这个文件名。");
+        return;
+    }
+
+    if (!QFile::rename(oldPath, newPath)) {
+        QMessageBox::warning(this, "重命名失败", "无法重命名文件。");
+        return;
+    }
+
+    // 如果改名的是正在编辑的文件，同步更新保存路径
+    if (oldPath == currentFilePath) {
+        currentFilePath = newPath;
+    }
+
+    refreshVault();
 }
 
 void MainWindow::addNotesFromDirectory(const QString &dirPath,
