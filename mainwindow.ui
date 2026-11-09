@@ -74,10 +74,16 @@ li.checked::marker { content: &quot;\2612&quot;; }
    <property name="text">
     <string>打开文件</string>
    </property>
+   <property name="shortcut">
+    <string>Ctrl+O</string>
+   </property>
   </action>
   <action name="actionSave">
    <property name="text">
     <string>保存文件</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+S</string>
    </property>
   </action>
   <action name="actionChooseVault">
@@ -108,6 +114,9 @@ li.checked::marker { content: &quot;\2612&quot;; }
   <action name="actionSearchNote">
    <property name="text">
     <string>搜索笔记</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+F</string>
    </property>
   </action>
  </widget>
