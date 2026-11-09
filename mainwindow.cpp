@@ -14,6 +14,7 @@
 #include <QLineEdit>
 #include <QRegularExpression>
 #include <QDirIterator>
+#include <QSettings>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -23,6 +24,14 @@ MainWindow::MainWindow(QWidget *parent)
 
     // 隐藏左侧默认显示“1”的表头
     ui->noteTree->setHeaderHidden(true);
+
+    QSettings settings("MossNote", "MossNote");
+    const QString savedPath = settings.value("vaultPath").toString();
+
+    if (!savedPath.isEmpty() && QDir(savedPath).exists()) {
+        vaultPath = savedPath;
+        refreshVault();
+    }
 
     // 添加两条示例笔记
     // new QTreeWidgetItem(ui->noteTree, QStringList{"学习 C++"});
@@ -235,6 +244,10 @@ void MainWindow::chooseVault()
     }
 
     vaultPath = folder;
+
+    QSettings settings("MossNote", "MossNote");
+    settings.setValue("vaultPath", vaultPath);
+
     refreshVault();
 }
 
