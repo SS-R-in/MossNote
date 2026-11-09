@@ -13,6 +13,7 @@
 #include <QInputDialog> // 获取标题
 #include <QLineEdit>
 #include <QRegularExpression>
+#include <QDirIterator>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -54,6 +55,8 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->actionRenameNote, &QAction::triggered, this, &MainWindow::renameNote);
 
     connect(ui->actionDeleteNote, &QAction::triggered, this, &MainWindow::deleteNote);
+
+    connect(ui->actionSearchNote, &QAction::triggered, this, &MainWindow::searchNote);
 
 }
 
@@ -459,5 +462,80 @@ void MainWindow::deleteNote(){
     refreshVault();
 
 
+
+}
+
+void MainWindow::searchNote(){
+    if (vaultPath.isEmpty()) {
+        QMessageBox::information(this, "提示", "请先选择笔记库文件夹。");
+        return;
+    }
+
+    bool ok = false;
+    const QString keyword = QInputDialog::getText(
+                                this,
+                                "搜索笔记",
+                                "搜索标题或正文：",
+                                QLineEdit::Normal,
+                                QString(),
+                                &ok
+                                ).trimmed();
+
+    if (!ok || keyword.isEmpty()) {
+        return;
+    }
+
+    if (!maybeSave()) {
+        return;
+    }
+
+    ui->noteTree->clear();
+
+    QDirIterator it(    // 边遍历边操作
+        vaultPath,
+        QStringList{"*.md"},
+        QDir::Files | QDir::NoSymLinks,
+        QDirIterator::Subdirectories
+        );
+
+    int matchCount = 0;
+    while (it.hasNext()) {
+        const QString filePath = it.next();
+        const QFileInfo info(filePath);
+
+        bool matches = info.completeBaseName().contains(
+            keyword, Qt::CaseInsensitive
+            );
+
+        if(!matches){
+            QFile file(filePath);
+
+            if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+                qDebug() << "打开失败：" << file.errorString();
+                return;
+            }
+
+            QByteArray data = file.readAll();
+            QString text = QString::fromUtf8(data);
+
+            matches = text.contains(
+                keyword, Qt::CaseInsensitive
+                );
+        }
+
+        if(matches){
+            auto* item = new QTreeWidgetItem(ui->noteTree);
+            item->setText(0, info.completeBaseName());
+            item->setData(0, Qt::UserRole, filePath);
+
+            item->setToolTip(
+                0, QDir(vaultPath).relativeFilePath(filePath)
+                );
+            matchCount++;
+        }
+    }
+    if (matchCount == 0) {
+        QMessageBox::information(this, "搜索结果", "没有找到匹配的笔记。");
+    }
 
 }

@@ -61,6 +61,7 @@ li.checked::marker { content: &quot;\2612&quot;; }
     <addaction name="actionNewNote"/>
     <addaction name="actionRenameNote"/>
     <addaction name="actionDeleteNote"/>
+    <addaction name="actionSearchNote"/>
    </widget>
    <addaction name="menu"/>
   </widget>
@@ -102,6 +103,11 @@ li.checked::marker { content: &quot;\2612&quot;; }
   <action name="actionDeleteNote">
    <property name="text">
     <string>删除笔记</string>
+   </property>
+  </action>
+  <action name="actionSearchNote">
+   <property name="text">
+    <string>搜索笔记</string>
    </property>
   </action>
  </widget>

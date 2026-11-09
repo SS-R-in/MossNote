@@ -32,6 +32,7 @@ private slots:
     void newNote();
     void renameNote();
     void deleteNote();
+    void searchNote();
 
 protected:
     void closeEvent(QCloseEvent *event) override;
