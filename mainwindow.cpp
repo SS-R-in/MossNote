@@ -24,8 +24,8 @@ MainWindow::MainWindow(QWidget *parent)
     ui->noteTree->setHeaderHidden(true);
 
     // 添加两条示例笔记
-    new QTreeWidgetItem(ui->noteTree, QStringList{"学习 C++"});
-    new QTreeWidgetItem(ui->noteTree, QStringList{"学习 Qt"});
+    // new QTreeWidgetItem(ui->noteTree, QStringList{"学习 C++"});
+    // new QTreeWidgetItem(ui->noteTree, QStringList{"学习 Qt"});
 
     // editor内容发生变化时发出信号，调用updatePreview
     connect(ui->editor, &QPlainTextEdit::textChanged,
@@ -52,6 +52,8 @@ MainWindow::MainWindow(QWidget *parent)
             this, &MainWindow::newNote);
 
     connect(ui->actionRenameNote, &QAction::triggered, this, &MainWindow::renameNote);
+
+    connect(ui->actionDeleteNote, &QAction::triggered, this, &MainWindow::deleteNote);
 
 }
 
@@ -365,8 +367,8 @@ void MainWindow::addNotesFromDirectory(const QString &dirPath,
 
     // 先列出当前目录下的子文件夹
     const QFileInfoList folders = dir.entryInfoList(
-        QDir::Dirs | QDir::NoDotAndDotDot | QDir::NoSymLinks,
-        QDir::Name | QDir::IgnoreCase
+        QDir::Dirs | QDir::NoDotAndDotDot | QDir::NoSymLinks,   // 筛选条件
+        QDir::Name | QDir::IgnoreCase   // 排序
         );
 
     for (const QFileInfo &folder : folders) {
@@ -403,4 +405,59 @@ void MainWindow::addNotesFromDirectory(const QString &dirPath,
         fileItem->setText(0, file.completeBaseName());
         fileItem->setData(0, Qt::UserRole, file.absoluteFilePath());
     }
+}
+
+void MainWindow::deleteNote(){
+
+    QTreeWidgetItem* item = ui->noteTree->currentItem();
+
+    if(!item){
+        QMessageBox::information(this, "提示", "请先在左侧选择一篇笔记。");
+        return;
+    }
+
+    QString filePath =item->data(0, Qt::UserRole).toString();
+
+    // 文件夹没有存放笔记路径
+    if (filePath.isEmpty()) {
+        QMessageBox::information(this, "提示", "请选择笔记文件。");
+        return;
+    }
+
+    const QString title = QFileInfo(filePath).completeBaseName();
+    const auto answer = QMessageBox::question(
+        this,
+        "确认删除",
+        QString("确定要删除“%1”吗？此操作会删除磁盘上的文件。").arg(title),
+        QMessageBox::Yes | QMessageBox::No,
+        QMessageBox::No
+        );
+
+    if (answer != QMessageBox::Yes) {
+        return;
+    }
+
+    // 收到确认删除消息，开始删除文件
+    QFile file(filePath);
+
+    if (!file.remove()) {
+        QMessageBox::warning(
+            this,
+            "删除失败",
+            file.errorString()
+            );
+        return;
+    }
+
+    if (filePath == currentFilePath) {
+        currentFilePath.clear();
+        ui->editor->clear();
+        ui->editor->document()->setModified(false);
+        ui->preview->clear();
+    }
+
+    refreshVault();
+
+
+
 }

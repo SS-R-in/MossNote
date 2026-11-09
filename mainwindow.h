@@ -31,6 +31,7 @@ private slots:
     void refreshVault();
     void newNote();
     void renameNote();
+    void deleteNote();
 
 protected:
     void closeEvent(QCloseEvent *event) override;
