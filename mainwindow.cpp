@@ -385,7 +385,7 @@ void MainWindow::renameNote(){
     QString oldPath =item->data(0, Qt::UserRole).toString();
 
     // 文件夹没有存放笔记路径
-    if (oldPath.isEmpty()) {
+    if (oldPath.isEmpty()||QFileInfo(oldPath).isDir()) {
         QMessageBox::information(this, "提示", "请选择笔记文件。");
         return;
     }
@@ -494,7 +494,7 @@ void MainWindow::deleteNote(){
     QString filePath =item->data(0, Qt::UserRole).toString();
 
     // 文件夹没有存放笔记路径
-    if (filePath.isEmpty()) {
+    if (filePath.isEmpty()||QFileInfo(filePath).isDir()) {
         QMessageBox::information(this, "提示", "请选择笔记文件。");
         return;
     }
