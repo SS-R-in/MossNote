@@ -68,6 +68,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->actionSearchNote, &QAction::triggered, this, &MainWindow::searchNote);
 
     // 排版
+
     connect(ui->fileModeButton, &QToolButton::clicked, this, &MainWindow::showFileMode);
 
     connect(ui->searchModeButton, &QToolButton::clicked, this, &MainWindow::showSearchMode);
@@ -77,7 +78,7 @@ MainWindow::MainWindow(QWidget *parent)
 
     connect(ui->newNoteButton, &QToolButton::clicked, this, &MainWindow::newNote);
 
-    connect(ui->refreshButton, &QToolButton::clicked, this, &MainWindow::refreshVault);
+    connect(ui->expandCollapseButton, &QToolButton::clicked, this, &MainWindow::toggleFolders);
 
     connect(ui->newFolderButton, &QToolButton::clicked, this, &MainWindow::newFolder);
 
@@ -627,4 +628,33 @@ void MainWindow::newFolder()
     }
 
     refreshVault();
+}
+
+void MainWindow::toggleFolders()
+{
+    // 任意一层有折叠节点时，展开全部；否则全部折叠
+    bool hasCollapsedItem = false;
+    QList<QTreeWidgetItem *> items;
+
+    for (int i = 0; i < ui->noteTree->topLevelItemCount(); ++i) {
+        items.append(ui->noteTree->topLevelItem(i));
+    }
+
+    while (!items.isEmpty()) {
+        QTreeWidgetItem *item = items.takeLast();
+
+        if (item->childCount() > 0 && !item->isExpanded()) {
+            hasCollapsedItem = true;
+        }
+
+        for (int i = 0; i < item->childCount(); ++i) {
+            items.append(item->child(i));
+        }
+    }
+
+    if (hasCollapsedItem) {
+        ui->noteTree->expandAll();
+    } else {
+        ui->noteTree->collapseAll();
+    }
 }

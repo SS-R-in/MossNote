@@ -80,9 +80,9 @@
             </widget>
            </item>
            <item>
-            <widget class="QToolButton" name="refreshButton">
+            <widget class="QToolButton" name="expandCollapseButton">
              <property name="text">
-              <string>刷新</string>
+              <string>显示/隐藏</string>
              </property>
             </widget>
            </item>

@@ -36,6 +36,7 @@ private slots:
     void showSearchMode();
     void showFileMode();
     void newFolder();
+    void toggleFolders();
 
 protected:
     void closeEvent(QCloseEvent *event) override;
