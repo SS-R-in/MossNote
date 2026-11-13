@@ -71,6 +71,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->fileModeButton, &QToolButton::clicked, this, &MainWindow::showFileMode);
 
     connect(ui->searchModeButton, &QToolButton::clicked, this, &MainWindow::showSearchMode);
+    connect(ui->searchEdit, &QLineEdit::textChanged, this, &MainWindow::searchNote);
 
     //connect(ui->searchModeButton, &QToolButton::clicked, this, &MainWindow::searchNote);
 
@@ -497,21 +498,10 @@ void MainWindow::searchNote(){
         return;
     }
 
-    bool ok = false;
-    const QString keyword = QInputDialog::getText(
-                                this,
-                                "搜索笔记",
-                                "搜索标题或正文：",
-                                QLineEdit::Normal,
-                                QString(),
-                                &ok
-                                ).trimmed();
+    const QString keyword = ui->searchEdit->text().trimmed();
 
-    if (!ok || keyword.isEmpty()) {
-        return;
-    }
-
-    if (!maybeSave()) {
+    if (keyword.isEmpty()) {
+        refreshVault();
         return;
     }
 
@@ -560,10 +550,6 @@ void MainWindow::searchNote(){
             matchCount++;
         }
     }
-    if (matchCount == 0) {
-        QMessageBox::information(this, "搜索结果", "没有找到匹配的笔记。");
-    }
-
 }
 
 //排版
