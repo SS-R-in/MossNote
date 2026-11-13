@@ -31,10 +31,19 @@
         <item>
          <widget class="QWidget" name="modeBar" native="true">
           <layout class="QHBoxLayout" name="horizontalLayout">
+           <property name="topMargin">
+            <number>4</number>
+           </property>
+           <property name="bottomMargin">
+            <number>4</number>
+           </property>
            <item>
             <widget class="QToolButton" name="fileModeButton">
              <property name="text">
               <string>文件列表</string>
+             </property>
+             <property name="autoRaise">
+              <bool>true</bool>
              </property>
             </widget>
            </item>
@@ -43,6 +52,9 @@
              <property name="text">
               <string>搜索</string>
              </property>
+             <property name="autoRaise">
+              <bool>true</bool>
+             </property>
             </widget>
            </item>
           </layout>
@@ -50,6 +62,11 @@
         </item>
         <item>
          <widget class="QLabel" name="vaultLabel">
+          <property name="font">
+           <font>
+            <bold>true</bold>
+           </font>
+          </property>
           <property name="text">
            <string>未选择笔记库</string>
           </property>
@@ -58,10 +75,19 @@
         <item>
          <widget class="QWidget" name="actionBar" native="true">
           <layout class="QHBoxLayout" name="horizontalLayout_2">
+           <property name="topMargin">
+            <number>4</number>
+           </property>
+           <property name="bottomMargin">
+            <number>4</number>
+           </property>
            <item>
             <widget class="QToolButton" name="newNoteButton">
              <property name="text">
               <string>新建笔记</string>
+             </property>
+             <property name="autoRaise">
+              <bool>true</bool>
              </property>
             </widget>
            </item>
@@ -70,6 +96,9 @@
              <property name="text">
               <string>新建文件夹</string>
              </property>
+             <property name="autoRaise">
+              <bool>true</bool>
+             </property>
             </widget>
            </item>
            <item>
@@ -77,12 +106,18 @@
              <property name="text">
               <string>排序</string>
              </property>
+             <property name="autoRaise">
+              <bool>true</bool>
+             </property>
             </widget>
            </item>
            <item>
             <widget class="QToolButton" name="expandCollapseButton">
              <property name="text">
               <string>显示/隐藏</string>
+             </property>
+             <property name="autoRaise">
+              <bool>true</bool>
              </property>
             </widget>
            </item>
