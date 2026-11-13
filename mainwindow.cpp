@@ -79,6 +79,8 @@ MainWindow::MainWindow(QWidget *parent)
 
     connect(ui->refreshButton, &QToolButton::clicked, this, &MainWindow::refreshVault);
 
+    connect(ui->newFolderButton, &QToolButton::clicked, this, &MainWindow::newFolder);
+
 
 
 }
@@ -100,8 +102,8 @@ void MainWindow::openSampleNote(QTreeWidgetItem *item, int column)
 
     QString filePath = item->data(0, Qt::UserRole).toString();
 
-    // 文件夹没有存文件路径，点击它时不打开笔记
-    if (filePath.isEmpty()) {
+    // 文件夹
+    if (filePath.isEmpty()||QFileInfo(filePath).isDir()) {
         return;
     }
 
@@ -411,6 +413,7 @@ void MainWindow::addNotesFromDirectory(const QString &dirPath,
         }
 
         folderItem->setText(0, folder.fileName());
+        folderItem->setData(0, Qt::UserRole, folder.absoluteFilePath());
 
         // 继续扫描这个子文件夹
         addNotesFromDirectory(folder.absoluteFilePath(), folderItem);
@@ -569,4 +572,59 @@ void MainWindow::showSearchMode()
     ui->searchEdit->show();
     ui->searchEdit->clear();
     ui->searchEdit->setFocus();
+}
+
+void MainWindow::newFolder()
+{
+    if (vaultPath.isEmpty()) {
+        QMessageBox::information(this, "提示", "请先选择笔记库文件夹。");
+        return;
+    }
+
+    bool ok = false;
+    QString folderName = QInputDialog::getText(
+                        this,
+                        "新建文件夹",
+                        "文件夹名称：",
+                        QLineEdit::Normal,
+                        QString(),
+                        &ok
+                        ).trimmed();
+
+    if (!ok || folderName.isEmpty()) {
+        return;
+    }
+
+    // 避免把路径分隔符当成标题的一部分
+    if (folderName.contains('/') || folderName.contains('\\')) {
+        QMessageBox::warning(this, "名称无效", "文件夹名称不能包含 / 或 \\。");
+        return;
+    }
+
+    QString parentPath = vaultPath;
+    QTreeWidgetItem *item = ui->noteTree->currentItem();
+
+    if (item) {
+        const QString selectedPath =
+            item->data(0, Qt::UserRole).toString();
+
+        if (!selectedPath.isEmpty() && QFileInfo(selectedPath).isDir()) {
+            parentPath = selectedPath;
+        }
+    }
+
+    QDir parentDir(parentPath);
+    const QString folderPath = parentDir.filePath(folderName);
+
+    if (QFileInfo::exists(folderPath)) {  // 检查文件名是否冲突
+        QMessageBox::warning(this, "创建失败", "已有文件或文件夹。");
+        return;
+    }
+
+    if (!parentDir.mkdir(folderName)) {
+        QMessageBox::warning(this, "创建失败", "无法创建文件夹。");
+        return;
+    }
+
+    refreshVault();
 }
