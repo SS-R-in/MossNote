@@ -37,6 +37,7 @@ private slots:
     void showFileMode();
     void newFolder();
     void toggleFolders();
+    void sortNotes();
 
 protected:
     void closeEvent(QCloseEvent *event) override;
@@ -48,6 +49,7 @@ private:
     QString vaultPath;  // 记住用户选中的笔记文件夹路径
     void addNotesFromDirectory(const QString &dirPath,
                                QTreeWidgetItem *parentItem);
+    bool ascendingOrder = true;
 
 };
 #endif // MAINWINDOW_H

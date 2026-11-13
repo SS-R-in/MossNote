@@ -93,6 +93,8 @@ MainWindow::MainWindow(QWidget *parent)
 
     connect(ui->expandCollapseButton, &QToolButton::clicked, this, &MainWindow::toggleFolders);
 
+    connect(ui->sortButton, &QToolButton::clicked, this, &MainWindow::sortNotes);
+
 
 }
 
@@ -666,5 +668,16 @@ void MainWindow::toggleFolders()
         ui->noteTree->expandAll();
     } else {
         ui->noteTree->collapseAll();
+    }
+}
+
+void MainWindow::sortNotes()
+{
+    if (ascendingOrder) {
+        ui->noteTree->sortItems(0, Qt::AscendingOrder);
+        ascendingOrder = false;
+    } else {
+        ui->noteTree->sortItems(0, Qt::DescendingOrder);
+        ascendingOrder = true;
     }
 }
