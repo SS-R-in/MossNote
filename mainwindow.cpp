@@ -22,6 +22,17 @@ MainWindow::MainWindow(QWidget *parent)
 {
     ui->setupUi(this);
 
+    connect(ui->actionToggleSidebar, &QAction::triggered, this, [this]() {
+        const bool isVisible = ui->leftPanel->isVisible();
+        ui->leftPanel->setVisible(!isVisible);
+
+        if (isVisible) {
+            ui->actionToggleSidebar->setText("展开侧边栏");
+        } else {
+            ui->actionToggleSidebar->setText("收起侧边栏");
+        }
+    });
+
     // 隐藏左侧默认显示“1”的表头
     ui->noteTree->setHeaderHidden(true);
 
@@ -78,10 +89,9 @@ MainWindow::MainWindow(QWidget *parent)
 
     connect(ui->newNoteButton, &QToolButton::clicked, this, &MainWindow::newNote);
 
-    connect(ui->expandCollapseButton, &QToolButton::clicked, this, &MainWindow::toggleFolders);
-
     connect(ui->newFolderButton, &QToolButton::clicked, this, &MainWindow::newFolder);
 
+    connect(ui->expandCollapseButton, &QToolButton::clicked, this, &MainWindow::toggleFolders);
 
 
 }
