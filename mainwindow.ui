@@ -86,6 +86,13 @@
              </property>
             </widget>
            </item>
+           <item>
+            <widget class="QLineEdit" name="searchEdit">
+             <property name="placeholderText">
+              <string>搜索笔记</string>
+             </property>
+            </widget>
+           </item>
           </layout>
          </widget>
         </item>
