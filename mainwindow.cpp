@@ -23,6 +23,9 @@ MainWindow::MainWindow(QWidget *parent)
 {
     ui->setupUi(this);
 
+    // 启动时默认显示文件列表模式
+    ui->searchEdit->hide();
+
     ui->fileModeButton->setIcon(
         style()->standardIcon(QStyle::SP_DirIcon)
         );
