@@ -15,12 +15,37 @@
 #include <QRegularExpression>
 #include <QDirIterator>
 #include <QSettings>
+#include <QStyle>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+
+    ui->fileModeButton->setIcon(
+        style()->standardIcon(QStyle::SP_DirIcon)
+        );
+
+    ui->newNoteButton->setIcon(
+        style()->standardIcon(QStyle::SP_FileIcon)
+        );
+
+    ui->newFolderButton->setIcon(
+        style()->standardIcon(QStyle::SP_DirClosedIcon)
+        );
+
+    ui->sortButton->setIcon(
+        style()->standardIcon(QStyle::SP_ArrowUp)
+        );
+
+    ui->expandCollapseButton->setIcon(
+        style()->standardIcon(QStyle::SP_ArrowDown)
+        );
+
+    ui->searchModeButton->setIcon(
+        style()->standardIcon(QStyle::SP_FileDialogContentsView)
+        );
 
     connect(ui->actionToggleSidebar, &QAction::triggered, this, [this]() {
         const bool isVisible = ui->leftPanel->isVisible();

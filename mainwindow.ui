@@ -39,6 +39,9 @@
            </property>
            <item>
             <widget class="QToolButton" name="fileModeButton">
+             <property name="toolTip">
+              <string>文件列表</string>
+             </property>
              <property name="text">
               <string>文件列表</string>
              </property>
@@ -49,6 +52,9 @@
            </item>
            <item>
             <widget class="QToolButton" name="searchModeButton">
+             <property name="toolTip">
+              <string>搜索</string>
+             </property>
              <property name="text">
               <string>搜索</string>
              </property>
@@ -83,6 +89,9 @@
            </property>
            <item>
             <widget class="QToolButton" name="newNoteButton">
+             <property name="toolTip">
+              <string>新建笔记</string>
+             </property>
              <property name="text">
               <string>新建笔记</string>
              </property>
@@ -93,6 +102,9 @@
            </item>
            <item>
             <widget class="QToolButton" name="newFolderButton">
+             <property name="toolTip">
+              <string>新建文件夹</string>
+             </property>
              <property name="text">
               <string>新建文件夹</string>
              </property>
@@ -103,6 +115,9 @@
            </item>
            <item>
             <widget class="QToolButton" name="sortButton">
+             <property name="toolTip">
+              <string>排序</string>
+             </property>
              <property name="text">
               <string>排序</string>
              </property>
@@ -113,8 +128,11 @@
            </item>
            <item>
             <widget class="QToolButton" name="expandCollapseButton">
+             <property name="toolTip">
+              <string>展开/折叠</string>
+             </property>
              <property name="text">
-              <string>显示/隐藏</string>
+              <string>展开/折叠</string>
              </property>
              <property name="autoRaise">
               <bool>true</bool>
