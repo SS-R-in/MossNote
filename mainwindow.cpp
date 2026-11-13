@@ -287,6 +287,10 @@ void MainWindow::refreshVault()
         return;
     }
 
+    QFileInfo vaultInfo(vaultPath);
+    ui->vaultLabel->setText(vaultInfo.fileName());
+    ui->vaultLabel->setToolTip(vaultInfo.absoluteFilePath());
+
     ui->noteTree->clear();
     addNotesFromDirectory(vaultPath, nullptr);
 }
