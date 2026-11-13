@@ -14,18 +14,97 @@
    <string>MainWindow</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <layout class="QHBoxLayout" name="horizontalLayout">
+   <layout class="QHBoxLayout" name="horizontalLayout_3">
     <item>
      <widget class="QSplitter" name="splitter">
       <property name="orientation">
        <enum>Qt::Orientation::Horizontal</enum>
       </property>
-      <widget class="QTreeWidget" name="noteTree">
-       <column>
-        <property name="text">
-         <string notr="true">1</string>
-        </property>
-       </column>
+      <widget class="QWidget" name="leftPanel" native="true">
+       <property name="minimumSize">
+        <size>
+         <width>220</width>
+         <height>0</height>
+        </size>
+       </property>
+       <layout class="QVBoxLayout" name="verticalLayout">
+        <item>
+         <widget class="QWidget" name="modeBar" native="true">
+          <layout class="QHBoxLayout" name="horizontalLayout">
+           <item>
+            <widget class="QToolButton" name="collapseButton">
+             <property name="text">
+              <string>收起</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QToolButton" name="fileModeButton">
+             <property name="text">
+              <string>文件列表</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QToolButton" name="searchModeButton">
+             <property name="text">
+              <string>搜索</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item>
+         <widget class="QWidget" name="actionBar" native="true">
+          <layout class="QHBoxLayout" name="horizontalLayout_2">
+           <item>
+            <widget class="QToolButton" name="newNoteButton">
+             <property name="text">
+              <string>新建笔记</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QToolButton" name="newFolderButton">
+             <property name="text">
+              <string>新建文件夹</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QToolButton" name="sortButton">
+             <property name="text">
+              <string>排序</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QToolButton" name="refreshButton">
+             <property name="text">
+              <string>刷新</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item>
+         <widget class="QTreeWidget" name="noteTree">
+          <property name="alternatingRowColors">
+           <bool>true</bool>
+          </property>
+          <property name="headerHidden">
+           <bool>true</bool>
+          </property>
+          <column>
+           <property name="text">
+            <string notr="true">1</string>
+           </property>
+          </column>
+         </widget>
+        </item>
+       </layout>
       </widget>
       <widget class="QPlainTextEdit" name="editor">
        <property name="placeholderText">
@@ -65,11 +144,6 @@ li.checked::marker { content: &quot;\2612&quot;; }
    </widget>
    <addaction name="menu"/>
   </widget>
-  <action name="actiondakaiwjian">
-   <property name="text">
-    <string>dakaiwjian</string>
-   </property>
-  </action>
   <action name="actionOpen">
    <property name="text">
     <string>打开文件</string>

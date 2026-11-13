@@ -67,6 +67,11 @@ MainWindow::MainWindow(QWidget *parent)
 
     connect(ui->actionSearchNote, &QAction::triggered, this, &MainWindow::searchNote);
 
+    // 排版
+    connect(ui->newNoteButton, &QToolButton::clicked, this, &MainWindow::newNote);
+
+    connect(ui->refreshButton, &QToolButton::clicked, this, &MainWindow::refreshVault);
+
 }
 
 MainWindow::~MainWindow()
