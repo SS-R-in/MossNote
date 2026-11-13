@@ -177,6 +177,17 @@
         </item>
         <item>
          <widget class="QPlainTextEdit" name="editor">
+          <property name="font">
+           <font>
+            <family>Consolas</family>
+            <pointsize>11</pointsize>
+           </font>
+          </property>
+          <property name="styleSheet">
+           <string notr="true">QPlainTextEdit {
+    padding: 10px;
+}</string>
+          </property>
           <property name="placeholderText">
            <string>在这里写 Markdown...</string>
           </property>
@@ -195,6 +206,11 @@
         </item>
         <item>
          <widget class="QTextBrowser" name="preview">
+          <property name="styleSheet">
+           <string notr="true">QTextBrowser {
+    padding: 10px;
+}</string>
+          </property>
           <property name="markdown">
            <string/>
           </property>
