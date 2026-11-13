@@ -572,6 +572,12 @@ void MainWindow::searchNote(){
 void MainWindow::showFileMode()
 {
     ui->searchEdit->hide();
+
+    ui->newNoteButton->show();
+    ui->newFolderButton->show();
+    ui->sortButton->show();
+    ui->expandCollapseButton->show();
+
     ui->searchEdit->clear();
     ui->noteTree->clear();
 
@@ -582,6 +588,11 @@ void MainWindow::showFileMode()
 
 void MainWindow::showSearchMode()
 {
+    ui->newNoteButton->hide();
+    ui->newFolderButton->hide();
+    ui->sortButton->hide();
+    ui->expandCollapseButton->hide();
+
     ui->searchEdit->show();
     ui->searchEdit->clear();
     ui->searchEdit->setFocus();
