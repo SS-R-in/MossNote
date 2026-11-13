@@ -68,7 +68,11 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->actionSearchNote, &QAction::triggered, this, &MainWindow::searchNote);
 
     // 排版
-    connect(ui->searchModeButton, &QToolButton::clicked, this, &MainWindow::searchNote);
+    connect(ui->fileModeButton, &QToolButton::clicked, this, &MainWindow::showFileMode);
+
+    connect(ui->searchModeButton, &QToolButton::clicked, this, &MainWindow::showSearchMode);
+
+    //connect(ui->searchModeButton, &QToolButton::clicked, this, &MainWindow::searchNote);
 
     connect(ui->newNoteButton, &QToolButton::clicked, this, &MainWindow::newNote);
 
@@ -560,4 +564,23 @@ void MainWindow::searchNote(){
         QMessageBox::information(this, "搜索结果", "没有找到匹配的笔记。");
     }
 
+}
+
+//排版
+void MainWindow::showFileMode()
+{
+    ui->searchEdit->hide();
+    ui->searchEdit->clear();
+    ui->noteTree->clear();
+
+    if (!vaultPath.isEmpty()) {
+        refreshVault();
+    }
+}
+
+void MainWindow::showSearchMode()
+{
+    ui->searchEdit->show();
+    ui->searchEdit->clear();
+    ui->searchEdit->setFocus();
 }

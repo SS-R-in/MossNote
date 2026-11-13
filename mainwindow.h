@@ -33,6 +33,8 @@ private slots:
     void renameNote();
     void deleteNote();
     void searchNote();
+    void showSearchMode();
+    void showFileMode();
 
 protected:
     void closeEvent(QCloseEvent *event) override;
@@ -44,5 +46,6 @@ private:
     QString vaultPath;  // 记住用户选中的笔记文件夹路径
     void addNotesFromDirectory(const QString &dirPath,
                                QTreeWidgetItem *parentItem);
+
 };
 #endif // MAINWINDOW_H
