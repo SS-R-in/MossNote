@@ -275,6 +275,7 @@ li.checked::marker { content: &quot;\2612&quot;; }
     <addaction name="actionRenameNote"/>
     <addaction name="actionDeleteNote"/>
     <addaction name="actionSearchNote"/>
+    <addaction name="actionDeleteFolder"/>
    </widget>
    <addaction name="menu"/>
   </widget>
@@ -333,6 +334,11 @@ li.checked::marker { content: &quot;\2612&quot;; }
    </property>
    <property name="menuRole">
     <enum>QAction::MenuRole::NoRole</enum>
+   </property>
+  </action>
+  <action name="actionDeleteFolder">
+   <property name="text">
+    <string>删除文件夹</string>
    </property>
   </action>
  </widget>

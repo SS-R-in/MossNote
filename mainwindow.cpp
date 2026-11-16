@@ -125,6 +125,7 @@ MainWindow::MainWindow(QWidget *parent)
 
     connect(ui->sortButton, &QToolButton::clicked, this, &MainWindow::sortNotes);
 
+    connect(ui->actionDeleteFolder, &QAction::triggered, this, &MainWindow::deleteFolder);
 
 }
 
@@ -754,4 +755,95 @@ void MainWindow::sortNotes()
         ui->noteTree->sortItems(0, Qt::DescendingOrder);
         ascendingOrder = true;
     }
+}
+
+void MainWindow::deleteFolder()
+{
+    QTreeWidgetItem *item = ui->noteTree->currentItem();
+
+    if (!item) {
+        QMessageBox::information(this, "提示", "请先选择一个文件夹。");
+        return;
+    }
+
+    const QString storedPath = item->data(0, Qt::UserRole).toString();
+
+    if (storedPath.isEmpty()) {
+        QMessageBox::information(this, "提示", "选中的项目不是文件夹。");
+        return;
+    }
+
+    const QFileInfo folderInfo(storedPath);
+
+    if (!folderInfo.isDir()) {
+        QMessageBox::information(this, "提示", "请选择文件夹，不能删除笔记文件。");
+        return;
+    }
+
+    const QString folderPath = folderInfo.absoluteFilePath();
+    const QString folderName = folderInfo.fileName();
+
+    const QDir folderDir(folderPath);
+    const QFileInfoList contents = folderDir.entryInfoList(
+        QDir::AllEntries |
+        QDir::NoDotAndDotDot |
+        QDir::Hidden |
+        QDir::System
+        );
+
+    QMessageBox::StandardButton answer;
+
+    if (contents.isEmpty()) {
+        answer = QMessageBox::question(
+            this,
+            "删除空文件夹",
+            QString("确定要删除空文件夹“%1”吗？").arg(folderName),
+            QMessageBox::Yes | QMessageBox::No,
+            QMessageBox::No
+            );
+    } else {
+        answer = QMessageBox::warning(
+            this,
+            "删除非空文件夹",
+            QString(
+                "文件夹“%1”中包含 %2 个文件或子文件夹。\n\n"
+                "删除文件夹会同时删除其中的所有内容，此操作无法恢复。\n\n"
+                "确定继续删除吗？"
+                ).arg(folderName).arg(contents.size()),
+            QMessageBox::Yes | QMessageBox::No,
+            QMessageBox::No
+            );
+    }
+
+    if (answer != QMessageBox::Yes) {
+        return;
+    }
+
+    if (!QDir(folderPath).removeRecursively()) {
+        QMessageBox::warning(
+            this,
+            "删除失败",
+            "无法删除该文件夹，请检查权限或文件是否正在使用。"
+            );
+        return;
+    }
+
+    // 当前笔记位于被删除的文件夹内时，清空编辑区
+    if (!currentFilePath.isEmpty()) {
+        const QString currentPath = QDir::fromNativeSeparators(
+            QDir::cleanPath(QFileInfo(currentFilePath).absoluteFilePath())
+            );
+        const QString folderPrefix = QDir::fromNativeSeparators(
+            QDir::cleanPath(folderPath) + QDir::separator()
+            );
+
+        if (currentPath.startsWith(folderPrefix, Qt::CaseInsensitive)) {
+            currentFilePath.clear();
+            ui->editor->clear();
+            ui->preview->clear();
+            ui->editor->document()->setModified(false);
+        }
+    }
+
+    refreshVault();
 }

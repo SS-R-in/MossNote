@@ -38,6 +38,7 @@ private slots:
     void newFolder();
     void toggleFolders();
     void sortNotes();
+    void deleteFolder();
 
 protected:
     void closeEvent(QCloseEvent *event) override;
