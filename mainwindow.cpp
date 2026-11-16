@@ -28,6 +28,8 @@ MainWindow::MainWindow(QWidget *parent)
     ui->setupUi(this);
 
     // 启动时默认显示文件列表模式
+    ui->noResultsLabel->hide();
+
     ui->searchEdit->hide();
 
     ui->splitter->setSizes({240, 480, 480});
@@ -568,63 +570,82 @@ void MainWindow::deleteNote(){
 
 }
 
-void MainWindow::searchNote(){
+void MainWindow::searchNote()
+{
     if (vaultPath.isEmpty()) {
-        QMessageBox::information(this, "提示", "请先选择笔记库文件夹。");
         return;
     }
 
-    const QString keyword = ui->searchEdit->text().trimmed();
-
-    if (keyword.isEmpty()) {
-        refreshVault();
-        return;
-    }
+    const QString keyword =
+        ui->searchEdit->text().trimmed();
 
     ui->noteTree->clear();
+    
+    if (keyword.isEmpty()) {
+        auto *hintItem = new QTreeWidgetItem(ui->noteTree);
+        hintItem->setText(0, "输入关键词开始搜索");
+        return;
+    }
+    int matchCount = 0;
 
-    QDirIterator it(    // 边遍历边操作
+    QDirIterator it(
         vaultPath,
-        QStringList{"*.md"},
+        QStringList{"*.md", "*.MD"},
         QDir::Files | QDir::NoSymLinks,
         QDirIterator::Subdirectories
         );
 
-    int matchCount = 0;
     while (it.hasNext()) {
         const QString filePath = it.next();
         const QFileInfo info(filePath);
 
         bool matches = info.completeBaseName().contains(
-            keyword, Qt::CaseInsensitive
+            keyword,
+            Qt::CaseInsensitive
             );
 
-        if(!matches){
+        if (!matches) {
             QFile file(filePath);
 
-            if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
-                qDebug() << "打开失败：" << file.errorString();
-                return;
+            if (file.open(QIODevice::ReadOnly)) {
+                const QString content =
+                    QString::fromUtf8(file.readAll());
+
+                matches = content.contains(
+                    keyword,
+                    Qt::CaseInsensitive
+                    );
             }
-
-            QByteArray data = file.readAll();
-            QString text = QString::fromUtf8(data);
-
-            matches = text.contains(
-                keyword, Qt::CaseInsensitive
-                );
         }
 
-        if(matches){
-            auto* item = new QTreeWidgetItem(ui->noteTree);
-            item->setText(0, info.completeBaseName());
-            item->setData(0, Qt::UserRole, filePath);
+        if (matches) {
+            auto *item =
+                new QTreeWidgetItem(ui->noteTree);
+
+            item->setText(
+                0,
+                info.completeBaseName()
+                );
 
             item->setToolTip(
-                0, QDir(vaultPath).relativeFilePath(filePath)
+                0,
+                QDir(vaultPath)
+                    .relativeFilePath(filePath)
                 );
-            matchCount++;
+
+            item->setData(
+                0,
+                Qt::UserRole,
+                filePath
+                );
+
+            ++matchCount;
         }
+    }
+
+    if (matchCount == 0) {
+        auto *hintItem = new QTreeWidgetItem(ui->noteTree);
+        hintItem->setText(0, "未找到匹配结果");
     }
 }
 
@@ -637,6 +658,9 @@ void MainWindow::showFileMode()
     ui->newFolderButton->show();
     ui->sortButton->show();
     ui->expandCollapseButton->show();
+
+    ui->noResultsLabel->hide();
+    ui->noteTree->show();
 
     ui->searchEdit->clear();
     ui->noteTree->clear();
@@ -652,9 +676,18 @@ void MainWindow::showSearchMode()
     ui->newFolderButton->hide();
     ui->sortButton->hide();
     ui->expandCollapseButton->hide();
+    ui->vaultLabel->hide();
 
     ui->searchEdit->show();
     ui->searchEdit->clear();
+
+    ui->noteTree->clear();
+
+    auto *hintItem = new QTreeWidgetItem(ui->noteTree);
+    hintItem->setText(0, "输入关键词开始搜索");
+
+    ui->noteTree->show();
+
     ui->searchEdit->setFocus();
 }
 
