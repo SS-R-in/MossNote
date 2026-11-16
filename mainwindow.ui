@@ -16,6 +16,35 @@
   <widget class="QWidget" name="centralwidget">
    <layout class="QHBoxLayout" name="horizontalLayout_6">
     <item>
+     <widget class="QWidget" name="sideRail" native="true">
+      <property name="minimumSize">
+       <size>
+        <width>44</width>
+        <height>0</height>
+       </size>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>44</width>
+        <height>16777215</height>
+       </size>
+      </property>
+      <widget class="QToolButton" name="collapseRailButton">
+       <property name="geometry">
+        <rect>
+         <x>0</x>
+         <y>10</y>
+         <width>44</width>
+         <height>21</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>收起</string>
+       </property>
+      </widget>
+     </widget>
+    </item>
+    <item>
      <widget class="QSplitter" name="splitter">
       <property name="orientation">
        <enum>Qt::Orientation::Horizontal</enum>
@@ -166,7 +195,7 @@
         </item>
        </layout>
       </widget>
-      <widget class="QWidget" name="">
+      <widget class="QWidget" name="layoutWidget">
        <layout class="QVBoxLayout" name="verticalLayout_3">
         <item>
          <widget class="QLabel" name="editorTitle">
@@ -195,7 +224,7 @@
         </item>
        </layout>
       </widget>
-      <widget class="QWidget" name="">
+      <widget class="QWidget" name="layoutWidget">
        <layout class="QVBoxLayout" name="verticalLayout_4">
         <item>
          <widget class="QLabel" name="previewTitle">
@@ -248,18 +277,6 @@ li.checked::marker { content: &quot;\2612&quot;; }
     <addaction name="actionSearchNote"/>
    </widget>
    <addaction name="menu"/>
-  </widget>
-  <widget class="QToolBar" name="toolBar">
-   <property name="windowTitle">
-    <string>toolBar</string>
-   </property>
-   <attribute name="toolBarArea">
-    <enum>TopToolBarArea</enum>
-   </attribute>
-   <attribute name="toolBarBreak">
-    <bool>false</bool>
-   </attribute>
-   <addaction name="actionToggleSidebar"/>
   </widget>
   <action name="actionOpen">
    <property name="text">

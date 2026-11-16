@@ -52,16 +52,16 @@ MainWindow::MainWindow(QWidget *parent)
         style()->standardIcon(QStyle::SP_FileDialogContentsView)
         );
 
-    connect(ui->actionToggleSidebar, &QAction::triggered, this, [this]() {
-        const bool isVisible = ui->leftPanel->isVisible();
-        ui->leftPanel->setVisible(!isVisible);
+    connect(ui->collapseRailButton, &QToolButton::clicked,
+            this, [this]() {
+                const bool visible = ui->leftPanel->isVisible();
 
-        if (isVisible) {
-            ui->actionToggleSidebar->setText("展开侧边栏");
-        } else {
-            ui->actionToggleSidebar->setText("收起侧边栏");
-        }
-    });
+                ui->leftPanel->setVisible(!visible);
+
+                ui->collapseRailButton->setText(
+                    visible ? "展开" : "收起"
+                    );
+            });
 
     // 隐藏左侧默认显示“1”的表头
     ui->noteTree->setHeaderHidden(true);
@@ -356,7 +356,28 @@ void MainWindow::newNote()
         return;
     }
 
-    QString filePath = QDir(vaultPath).filePath(title + ".md");
+    QString targetDir = vaultPath;
+    QTreeWidgetItem *selectedItem = ui->noteTree->currentItem();
+
+    if (selectedItem) {
+        const QString selectedPath =
+            selectedItem->data(0, Qt::UserRole).toString();
+
+        if (!selectedPath.isEmpty()) {
+            const QFileInfo selectedInfo(selectedPath);
+
+            if (selectedInfo.isDir()) {
+                // 选中的是文件夹：在这个文件夹里创建
+                targetDir = selectedInfo.absoluteFilePath();
+            } else {
+                // 选中的是笔记：在笔记所在文件夹里创建
+                targetDir = selectedInfo.absolutePath();
+            }
+        }
+    }
+
+    const QString filePath =
+        QDir(targetDir).filePath(title + ".md");
 
     if (QFileInfo::exists(filePath)) {  // 检查文件名是否冲突
         QMessageBox::warning(this, "文件已存在", "笔记库里已经有这个文件名。");
@@ -660,14 +681,22 @@ void MainWindow::newFolder()
     }
 
     QString parentPath = vaultPath;
-    QTreeWidgetItem *item = ui->noteTree->currentItem();
+    QTreeWidgetItem *selectedItem = ui->noteTree->currentItem();
 
-    if (item) {
+    if (selectedItem) {
         const QString selectedPath =
-            item->data(0, Qt::UserRole).toString();
+            selectedItem->data(0, Qt::UserRole).toString();
 
-        if (!selectedPath.isEmpty() && QFileInfo(selectedPath).isDir()) {
-            parentPath = selectedPath;
+        if (!selectedPath.isEmpty()) {
+            const QFileInfo selectedInfo(selectedPath);
+
+            if (selectedInfo.isDir()) {
+                // 选中的是文件夹：在该文件夹内创建
+                parentPath = selectedInfo.absoluteFilePath();
+            } else {
+                // 选中的是笔记：在笔记所在文件夹内创建
+                parentPath = selectedInfo.absolutePath();
+            }
         }
     }
 
