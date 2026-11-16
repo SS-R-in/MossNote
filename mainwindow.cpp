@@ -16,6 +16,10 @@
 #include <QDirIterator>
 #include <QSettings>
 #include <QStyle>
+#include <QActionGroup>
+#include <QDateTime>
+#include <QMenu>
+#include <algorithm>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -748,12 +752,136 @@ void MainWindow::toggleFolders()
 
 void MainWindow::sortNotes()
 {
-    if (ascendingOrder) {
-        ui->noteTree->sortItems(0, Qt::AscendingOrder);
-        ascendingOrder = false;
-    } else {
-        ui->noteTree->sortItems(0, Qt::DescendingOrder);
-        ascendingOrder = true;
+    QMenu menu(this);
+    QActionGroup group(&menu);
+    group.setExclusive(true);
+
+    auto addOption = [&](const QString &label, NoteSortMode mode) {
+        QAction *action = menu.addAction(label);
+        action->setCheckable(true);
+        action->setChecked(noteSortMode == mode);
+        group.addAction(action);
+
+        connect(action, &QAction::triggered, this, [this, mode]() {
+            applySortMode(mode);
+        });
+    };
+
+    addOption("文件名 (A-Z)", NoteSortMode::NameAscending);
+    addOption("文件名 (Z-A)", NoteSortMode::NameDescending);
+
+    menu.addSeparator();
+
+    addOption("编辑时间（从新到旧）", NoteSortMode::ModifiedNewest);
+    addOption("编辑时间（从旧到新）", NoteSortMode::ModifiedOldest);
+
+    menu.addSeparator();
+
+    addOption("创建时间（从新到旧）", NoteSortMode::CreatedNewest);
+    addOption("创建时间（从旧到新）", NoteSortMode::CreatedOldest);
+
+    menu.exec(ui->sortButton->mapToGlobal(
+        QPoint(0, ui->sortButton->height())
+        ));
+}
+
+void MainWindow::applySortMode(NoteSortMode mode)
+{
+    noteSortMode = mode;
+    sortNoteItems(nullptr);
+}
+
+void MainWindow::sortNoteItems(QTreeWidgetItem *parent)
+{
+    auto isFolder = [](QTreeWidgetItem *item) {
+        const QString path = item->data(0, Qt::UserRole).toString();
+        return !path.isEmpty() && QFileInfo(path).isDir();
+    };
+
+    const int count = parent
+                          ? parent->childCount()
+                          : ui->noteTree->topLevelItemCount();
+
+    QList<QTreeWidgetItem *> items;
+    QList<QTreeWidgetItem *> notes;
+
+    for (int i = 0; i < count; ++i) {
+        QTreeWidgetItem *item = parent
+                                    ? parent->child(i)
+                                    : ui->noteTree->topLevelItem(i);
+
+        items.append(item);
+
+        if (isFolder(item)) {
+            // 先排序这个文件夹自己的笔记
+            sortNoteItems(item);
+        } else {
+            notes.append(item);
+        }
+    }
+
+    auto compareNotes = [this](QTreeWidgetItem *a, QTreeWidgetItem *b) {
+        const QString nameA = a->text(0);
+        const QString nameB = b->text(0);
+        const int nameResult = QString::localeAwareCompare(nameA, nameB);
+
+        const QFileInfo infoA(a->data(0, Qt::UserRole).toString());
+        const QFileInfo infoB(b->data(0, Qt::UserRole).toString());
+
+        switch (noteSortMode) {
+        case NoteSortMode::NameAscending:
+            return nameResult < 0;
+
+        case NoteSortMode::NameDescending:
+            return nameResult > 0;
+
+        case NoteSortMode::ModifiedNewest:
+            if (infoA.lastModified() != infoB.lastModified())
+                return infoA.lastModified() > infoB.lastModified();
+            return nameResult < 0;
+
+        case NoteSortMode::ModifiedOldest:
+            if (infoA.lastModified() != infoB.lastModified())
+                return infoA.lastModified() < infoB.lastModified();
+            return nameResult < 0;
+
+        case NoteSortMode::CreatedNewest:
+            if (infoA.birthTime() != infoB.birthTime())
+                return infoA.birthTime() > infoB.birthTime();
+            return nameResult < 0;
+
+        case NoteSortMode::CreatedOldest:
+            if (infoA.birthTime() != infoB.birthTime())
+                return infoA.birthTime() < infoB.birthTime();
+            return nameResult < 0;
+        }
+
+        return nameResult < 0;
+    };
+
+    std::stable_sort(notes.begin(), notes.end(), compareNotes);
+
+    // 只替换笔记所占的位置，文件夹保持原来的位置和顺序
+    int noteIndex = 0;
+    for (int i = 0; i < items.size(); ++i) {
+        if (!isFolder(items[i])) {
+            items[i] = notes[noteIndex++];
+        }
+    }
+
+    // 从树上取下节点，再按新顺序放回；节点本身及其路径数据会保留
+    for (int i = 0; i < count; ++i) {
+        if (parent)
+            parent->takeChild(0);
+        else
+            ui->noteTree->takeTopLevelItem(0);
+    }
+
+    for (int i = 0; i < items.size(); ++i) {
+        if (parent)
+            parent->insertChild(i, items[i]);
+        else
+            ui->noteTree->insertTopLevelItem(i, items[i]);
     }
 }
 

@@ -52,5 +52,18 @@ private:
                                QTreeWidgetItem *parentItem);
     bool ascendingOrder = true;
 
+    enum class NoteSortMode {
+        NameAscending,
+        NameDescending,
+        ModifiedNewest,
+        ModifiedOldest,
+        CreatedNewest,
+        CreatedOldest
+    };
+
+    NoteSortMode noteSortMode = NoteSortMode::NameAscending;
+
+    void applySortMode(NoteSortMode mode);
+    void sortNoteItems(QTreeWidgetItem *parent);
 };
 #endif // MAINWINDOW_H
