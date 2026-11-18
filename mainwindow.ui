@@ -276,6 +276,7 @@ li.checked::marker { content: &quot;\2612&quot;; }
     <addaction name="actionDeleteNote"/>
     <addaction name="actionSearchNote"/>
     <addaction name="actionDeleteFolder"/>
+    <addaction name="actionRenameFolder"/>
    </widget>
    <addaction name="menu"/>
   </widget>
@@ -339,6 +340,11 @@ li.checked::marker { content: &quot;\2612&quot;; }
   <action name="actionDeleteFolder">
    <property name="text">
     <string>删除文件夹</string>
+   </property>
+  </action>
+  <action name="actionRenameFolder">
+   <property name="text">
+    <string>重命名文件夹</string>
    </property>
   </action>
  </widget>

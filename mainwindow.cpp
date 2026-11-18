@@ -27,10 +27,7 @@ MainWindow::MainWindow(QWidget *parent)
 {
     ui->setupUi(this);
 
-    // 启动时默认显示文件列表模式
-    ui->noResultsLabel->hide();
-
-    ui->searchEdit->hide();
+    showFileMode();
 
     ui->splitter->setSizes({240, 480, 480});
 
@@ -69,9 +66,6 @@ MainWindow::MainWindow(QWidget *parent)
                     );
             });
 
-    // 隐藏左侧默认显示“1”的表头
-    ui->noteTree->setHeaderHidden(true);
-
     QSettings settings("MossNote", "MossNote");
     const QString savedPath = settings.value("vaultPath").toString();
 
@@ -79,10 +73,6 @@ MainWindow::MainWindow(QWidget *parent)
         vaultPath = savedPath;
         refreshVault();
     }
-
-    // 添加两条示例笔记
-    // new QTreeWidgetItem(ui->noteTree, QStringList{"学习 C++"});
-    // new QTreeWidgetItem(ui->noteTree, QStringList{"学习 Qt"});
 
     // editor内容发生变化时发出信号，调用updatePreview
     connect(ui->editor, &QPlainTextEdit::textChanged,
@@ -132,6 +122,8 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->sortButton, &QToolButton::clicked, this, &MainWindow::sortNotes);
 
     connect(ui->actionDeleteFolder, &QAction::triggered, this, &MainWindow::deleteFolder);
+
+    connect(ui->actionRenameFolder, &QAction::triggered, this, &MainWindow::renameFolder);
 
 }
 
@@ -659,7 +651,6 @@ void MainWindow::showFileMode()
     ui->sortButton->show();
     ui->expandCollapseButton->show();
 
-    ui->noResultsLabel->hide();
     ui->noteTree->show();
 
     ui->searchEdit->clear();
@@ -756,30 +747,12 @@ void MainWindow::newFolder()
 
 void MainWindow::toggleFolders()
 {
-    // 任意一层有折叠节点时，展开全部；否则全部折叠
-    bool hasCollapsedItem = false;
-    QList<QTreeWidgetItem *> items;
-
-    for (int i = 0; i < ui->noteTree->topLevelItemCount(); ++i) {
-        items.append(ui->noteTree->topLevelItem(i));
-    }
-
-    while (!items.isEmpty()) {
-        QTreeWidgetItem *item = items.takeLast();
-
-        if (item->childCount() > 0 && !item->isExpanded()) {
-            hasCollapsedItem = true;
-        }
-
-        for (int i = 0; i < item->childCount(); ++i) {
-            items.append(item->child(i));
-        }
-    }
-
-    if (hasCollapsedItem) {
+    if (foldersExpanded) {
         ui->noteTree->expandAll();
+        foldersExpanded = false;
     } else {
         ui->noteTree->collapseAll();
+        foldersExpanded = true;
     }
 }
 
@@ -1004,6 +977,78 @@ void MainWindow::deleteFolder()
             ui->preview->clear();
             ui->editor->document()->setModified(false);
         }
+    }
+
+    refreshVault();
+}
+
+void MainWindow::renameFolder()
+{
+    QTreeWidgetItem *item = ui->noteTree->currentItem();
+
+    if (!item) {
+        QMessageBox::information(this, "提示", "请先选择一个文件夹。");
+        return;
+    }
+
+    const QString oldPath = item->data(0, Qt::UserRole).toString();
+    const QFileInfo oldInfo(oldPath);
+
+    if (oldPath.isEmpty() || !oldInfo.isDir()) {
+        QMessageBox::information(this, "提示", "请选择文件夹，而不是笔记。");
+        return;
+    }
+
+    bool ok = false;
+    const QString newName = QInputDialog::getText(
+                                this,
+                                "重命名文件夹",
+                                "新名称：",
+                                QLineEdit::Normal,
+                                oldInfo.fileName(),
+                                &ok
+                                ).trimmed();
+
+    if (!ok || newName.isEmpty() || newName == oldInfo.fileName()) {
+        return;
+    }
+
+    if (newName.contains('/') || newName.contains('\\')) {
+        QMessageBox::warning(this, "名称无效", "文件夹名称不能包含路径分隔符。");
+        return;
+    }
+
+    const QString newPath =
+        QDir(oldInfo.absolutePath()).filePath(newName);
+
+    if (QFileInfo::exists(newPath)) {
+        QMessageBox::warning(this, "重命名失败", "同一目录下已存在同名文件或文件夹。");
+        return;
+    }
+
+    // 当前笔记在该文件夹内时，记住它在文件夹中的相对路径
+    QString relativeNotePath;
+    bool currentNoteIsInside = false;
+
+    if (!currentFilePath.isEmpty()) {
+        const QString relativePath =
+            QDir(oldPath).relativeFilePath(currentFilePath);
+
+        if (relativePath != ".."
+            && !relativePath.startsWith("../")
+            && !QDir::isAbsolutePath(relativePath)) {
+            relativeNotePath = relativePath;
+            currentNoteIsInside = true;
+        }
+    }
+
+    if (!QDir().rename(oldPath, newPath)) {
+        QMessageBox::warning(this, "重命名失败", "无法重命名该文件夹。");
+        return;
+    }
+
+    if (currentNoteIsInside) {
+        currentFilePath = QDir(newPath).filePath(relativeNotePath);
     }
 
     refreshVault();

@@ -39,6 +39,7 @@ private slots:
     void toggleFolders();
     void sortNotes();
     void deleteFolder();
+    void renameFolder();
 
 protected:
     void closeEvent(QCloseEvent *event) override;
@@ -65,5 +66,7 @@ private:
 
     void applySortMode(NoteSortMode mode);
     void sortNoteItems(QTreeWidgetItem *parent);
+
+    bool foldersExpanded = false;
 };
 #endif // MAINWINDOW_H
